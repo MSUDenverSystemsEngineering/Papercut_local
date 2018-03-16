@@ -194,7 +194,7 @@ Try {
 
 		## Set a startup registry value if the client is found
 		If ($installLocation) {
-			Set-RegistryKey -Key "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "PaperCut" -Value "${installLocation} --silent" -Type "String"
+			Set-RegistryKey -Key "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "PaperCut" -Value "`"${installLocation}`" --silent" -Type "String"
 		} Else {
 			Write-Log -Message "Couldn't detect the PaperCut client after installation. Startup registry values won't be configured." -Severity 3
 		}
@@ -232,7 +232,8 @@ Try {
 		}
 
 		# <Perform Uninstallation tasks here>
-
+		$exitCode = Execute-MSI -Action 'Uninstall' -Path "pc-client-admin-deploy.msi" -PassThru
+		If (($exitCode.ExitCode -ne "0") -and ($mainExitCode -ne "3010")) { $mainExitCode = $exitCode.ExitCode }
 
 		##*===============================================
 		##* POST-UNINSTALLATION
@@ -240,7 +241,10 @@ Try {
 		[string]$installPhase = 'Post-Uninstallation'
 
 		## <Perform Post-Uninstallation tasks here>
-
+		If (Get-RegistryKey -Key 'HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Run' -Value 'PaperCut') {
+			Write-Log -Message "Removing detected startup entries..." -Severity 1
+			Remove-RegistryKey -Key 'HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Run' -Name 'PaperCut'
+		}
 
 	}
 
@@ -262,8 +266,8 @@ Catch {
 # SIG # Begin signature block
 # MIIU4wYJKoZIhvcNAQcCoIIU1DCCFNACAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBaXSpV0+1kRNya
-# br3P2Cwq/+c2Ze0LjoKAev7+pOxyvqCCD4cwggQUMIIC/KADAgECAgsEAAAAAAEv
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAp2PZ01hEn3/Mr
+# 1uAuHwgsGvX8KsVHycs/5NaAaDDEXqCCD4cwggQUMIIC/KADAgECAgsEAAAAAAEv
 # TuFS1zANBgkqhkiG9w0BAQUFADBXMQswCQYDVQQGEwJCRTEZMBcGA1UEChMQR2xv
 # YmFsU2lnbiBudi1zYTEQMA4GA1UECxMHUm9vdCBDQTEbMBkGA1UEAxMSR2xvYmFs
 # U2lnbiBSb290IENBMB4XDTExMDQxMzEwMDAwMFoXDTI4MDEyODEyMDAwMFowUjEL
@@ -350,26 +354,26 @@ Catch {
 # FgNlZHUxGTAXBgoJkiaJk/IsZAEZFgltc3VkZW52ZXIxFTATBgoJkiaJk/IsZAEZ
 # FgV3aW5hZDEZMBcGA1UEAxMQd2luYWQtVk1XQ0EwMS1DQQITfwAAACITuo77mvOv
 # 9AABAAAAIjANBglghkgBZQMEAgEFAKBmMBgGCisGAQQBgjcCAQwxCjAIoAKAAKEC
-# gAAwGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwLwYJKoZIhvcNAQkEMSIEIAji
-# Oa7zhliANX7GLIWE6I12Uj5aPYuA44fz0Qi+/yx+MA0GCSqGSIb3DQEBAQUABIIB
-# AFSEc+BXRAiH7fArgvAD3HbofveXLrmPaq4BVrEChoJ1i36+0oV+qJ2N+pZiHPLf
-# JCv7pgZbrhstpXv2sRnC8wgKQwRVJE2MUSGxB/Tl1nMLCXWml9on4QoteDWZpnLP
-# eEL33WA6KsJxie4PSTRIiuun7421KcEj78AU1qdu7DJldOo2zufDUtfH4jBbK54h
-# iMpEElbhZFllutsi7CPPUr6CD4wCV05ctZCD0B3tBqo+E+QAu0dDXdWXrxi7GSBu
-# suWjgG4clQl+KcCRdY7OkbZt+3y35LioQERlPPpcdRlSgkWGK6xbNRTPr2Z0sWax
-# pqsKjfEjU/CCrSeH9e39PXuhggKiMIICngYJKoZIhvcNAQkGMYICjzCCAosCAQEw
+# gAAwGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwLwYJKoZIhvcNAQkEMSIEILLZ
+# rWJGYbLIi1wdy9aDFzzCKrfBEP0PIXkQEN7/V+UlMA0GCSqGSIb3DQEBAQUABIIB
+# AGUb/tmdYvrH/knt/pc9y1LDKVhV4/zYYjlpU1+OTE+uCSxb/Hlu0kYbeGmEHxs3
+# oPNBgoQ988MwB8mjJ2YjjE/hvMJvmCnk6goANZw20klLfzPKPuzR/Ac/xG4DC2jd
+# yX4VoWpRjMCYHpVpjMiwmtRSKR1gOUXWuKyLFyIr2SzfaLFiO0AEQ+rbBIaHTn5Y
+# EMPhLG9oR5eNHThMVqvMkPM6/OJiPsxrn6PVtDk/nnI8B/O7VSgREqxmBiac1amo
+# buXkzDUGadhYqbhS397gnkWEou9MQisxUSvGBhvJgOJjZ56LGTvhQb4sNPmfppXX
+# KuRNU/xe5mtI+h8l7Z+nf+mhggKiMIICngYJKoZIhvcNAQkGMYICjzCCAosCAQEw
 # aDBSMQswCQYDVQQGEwJCRTEZMBcGA1UEChMQR2xvYmFsU2lnbiBudi1zYTEoMCYG
 # A1UEAxMfR2xvYmFsU2lnbiBUaW1lc3RhbXBpbmcgQ0EgLSBHMgISESHWmadklz7x
 # +EJ+6RnMU0EUMAkGBSsOAwIaBQCggf0wGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEH
-# ATAcBgkqhkiG9w0BCQUxDxcNMTgwMzE2MTYyMTU3WjAjBgkqhkiG9w0BCQQxFgQU
-# qMw1PDC0GhSZVCNCCR0jQpUajsIwgZ0GCyqGSIb3DQEJEAIMMYGNMIGKMIGHMIGE
+# ATAcBgkqhkiG9w0BCQUxDxcNMTgwMzE2MTY0MjUxWjAjBgkqhkiG9w0BCQQxFgQU
+# YOgf6Z30WXzgwHu/q6dWwF7qHEAwgZ0GCyqGSIb3DQEJEAIMMYGNMIGKMIGHMIGE
 # BBRjuC+rYfWDkJaVBQsAJJxQKTPseTBsMFakVDBSMQswCQYDVQQGEwJCRTEZMBcG
 # A1UEChMQR2xvYmFsU2lnbiBudi1zYTEoMCYGA1UEAxMfR2xvYmFsU2lnbiBUaW1l
 # c3RhbXBpbmcgQ0EgLSBHMgISESHWmadklz7x+EJ+6RnMU0EUMA0GCSqGSIb3DQEB
-# AQUABIIBABc+RbIJhUpB+atpQ6XvobW48zC+Z4l/uAJL8iLsgEmzpZUp6vXaD89T
-# FQcx9PiguyVOB4lP+VGryJ7fSQ/+6r4hbKhNsRr4LeMCIlGLUb+eBPUwJwHkL7a0
-# QPQE8rIvmBr0cR+xUShu7n44jL6PoO+H+d30cv53xizHBPJtx7CLeUZVzkqk4V2i
-# OTncGpOUnLCqZ2AIii8IcGiE+dPZtR8UPxAdxla+3LD/p9ytciTgu9pkqaH/8Spc
-# OHfZVq+8HFzYK/SGQH3R2L2mCwJOquFYNwKpJiovRuRU4nxThqQHKGStFeim0+AN
-# YNHvKL2czhcfrE8Tck30mgORFajJzeU=
+# AQUABIIBAEbeXUWtu0uUrrsE+wwoZ+o1KS+ZENX3yBmQOEBfc+AaUWJgSwxvWVnH
+# T16ZJiXRwmzNns7mixJw7CIxCreWeUpwdhPEm+C6jNY45YFMdBqPsjsJRqdGx3qw
+# KHL34B82lbDcX7wrY4MeTxPGr1T1amgBSufo3gk0oshJwjIWNqYb+5F070fILtkg
+# DyiUS+wYzL4vEzfI6H6KMcqCpWn+SRcwoGJ+jLQ7NnCrjDQ29pEKgwxhNDJpI/lc
+# JxMTL3JxQXGNHZoNEWUuJ3fZRn/rYfXXUxjpBGF2nHUex6mzw4+IXpkouu2HQtkm
+# ULoRxudetFT2DXpUTmvT2xy/2xKdGG0=
 # SIG # End signature block
