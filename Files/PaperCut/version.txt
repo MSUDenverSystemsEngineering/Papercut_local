@@ -1,6 +1,0 @@
-[version]
-name-with-version=PaperCut MF 16.4 (Build 39158)
-name=PaperCut MF
-version-major=16
-version-minor=4
-version-build=39158

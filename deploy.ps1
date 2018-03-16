@@ -1,7 +1,7 @@
 ## Define variables
 $vmwfs14 = New-PSSession -ComputerName VMWFS14
 $applicationName = "Staging - ${Env:APPVEYOR_PROJECT_NAME}"
-$stagingFolder = "\\vmwfs14\H$\Archive\SCCM\Staging\${Env:APPVEYOR_PROJECT_NAME}\${Env:APPVEYOR_BUILD_VERSION}"
+$stagingFolder = "\\vmwfs14\Apps\Staging\${Env:APPVEYOR_PROJECT_NAME}\${Env:APPVEYOR_BUILD_VERSION}"
 $install = "Deploy-Application.exe -DeploymentType `"Install`" -AllowRebootPassThru"
 $uninstall = "Deploy-Application.exe -DeploymentType `"Uninstall`" -AllowRebootPassThru"
 
@@ -14,7 +14,7 @@ Remove-Item -Path "${Env:APPLICATION_PATH}\${Env:APPVEYOR_PROJECT_SLUG}\.git" -R
 Remove-Item -Path "${Env:APPLICATION_PATH}\${Env:APPVEYOR_PROJECT_SLUG}\Tests" -Recurse
 
 ## Upload the repository to the staging directory, appending the build number so we don't overwrite our previous work.
-Copy-Item -Path "${Env:APPLICATION_PATH}\${Env:APPVEYOR_PROJECT_SLUG}" -Destination "H:\Archive\SCCM\Staging\${Env:APPVEYOR_PROJECT_NAME}\${Env:APPVEYOR_BUILD_VERSION}" -ToSession $vmwfs14 -Recurse
+Copy-Item -Path "${Env:APPLICATION_PATH}\${Env:APPVEYOR_PROJECT_SLUG}" -Destination "H:\Apps\Staging\${Env:APPVEYOR_PROJECT_NAME}\${Env:APPVEYOR_BUILD_VERSION}" -ToSession $vmwfs14 -Recurse
 
 ## Import cmdlets for ConfigMgr
 Import-Module -Name "$(Split-Path $Env:SMS_ADMIN_UI_PATH)\ConfigurationManager.psd1"
@@ -33,13 +33,13 @@ New-CMApplication -Name $applicationName -Description "Repository: https://githu
 ## Create a new script deployment type with standard settings for PowerShell App Deployment Toolkit
 ## You'll need to manually update the deployment type's detection method to find the software, make any other needed customizations to the application and deployment type, then distribute your content when ready.
 ## Reference: https://docs.microsoft.com/en-us/powershell/sccm/configurationmanager/vlatest/add-cmscriptdeploymenttype
-Get-CMApplication -Name $applicationName | Add-CMScriptDeploymentType -DeploymentTypeName "${applicationName} ${Env:APPVEYOR_BUILD_VERSION}" -InstallCommand $install -ScriptLanguage "PowerShell" -ScriptText "Update this detection method to accurately locate the application." -ContentLocation $stagingFolder -EnableBranchCache -InstallationBehaviorType "InstallForSystem" -LogonRequirementType "WhetherOrNotUserLoggedOn" -MaximumRuntimeMins 720 -UninstallCommand $uninstall -UserInteractionMode "Normal"
+Get-CMApplication -Name $applicationName | Add-CMScriptDeploymentType -DeploymentTypeName "${applicationName} ${Env:APPVEYOR_BUILD_VERSION}" -InstallCommand $install -ScriptLanguage "PowerShell" -ScriptText "Update this detection method to accurately locate the application." -ContentLocation $stagingFolder -EnableBranchCache -InstallationBehaviorType "InstallForSystem" -LogonRequirementType "WhetherOrNotUserLoggedOn" -MaximumRuntimeMins 120 -UninstallCommand $uninstall -UserInteractionMode "Normal"
 
 # SIG # Begin signature block
 # MIIU4wYJKoZIhvcNAQcCoIIU1DCCFNACAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCti+bEaul7bltu
-# 6UxB4cUmfl9qf8UY1dzQeXHveOJDsqCCD4cwggQUMIIC/KADAgECAgsEAAAAAAEv
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCQKTXc5qa99cJG
+# Oi6MFAzTSgEXbtJlDROPZbv8N3dAfKCCD4cwggQUMIIC/KADAgECAgsEAAAAAAEv
 # TuFS1zANBgkqhkiG9w0BAQUFADBXMQswCQYDVQQGEwJCRTEZMBcGA1UEChMQR2xv
 # YmFsU2lnbiBudi1zYTEQMA4GA1UECxMHUm9vdCBDQTEbMBkGA1UEAxMSR2xvYmFs
 # U2lnbiBSb290IENBMB4XDTExMDQxMzEwMDAwMFoXDTI4MDEyODEyMDAwMFowUjEL
@@ -126,26 +126,26 @@ Get-CMApplication -Name $applicationName | Add-CMScriptDeploymentType -Deploymen
 # FgNlZHUxGTAXBgoJkiaJk/IsZAEZFgltc3VkZW52ZXIxFTATBgoJkiaJk/IsZAEZ
 # FgV3aW5hZDEZMBcGA1UEAxMQd2luYWQtVk1XQ0EwMS1DQQITfwAAACITuo77mvOv
 # 9AABAAAAIjANBglghkgBZQMEAgEFAKBmMBgGCisGAQQBgjcCAQwxCjAIoAKAAKEC
-# gAAwGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwLwYJKoZIhvcNAQkEMSIEIBDV
-# Nklhk5Y7YoDzaiIofAtoOHSOn+AsmV2JRSU32i8mMA0GCSqGSIb3DQEBAQUABIIB
-# AK8Rxkxi4PTQpvLlIcz0pg1/7QdU4Yuyf8KFQHYwOOpGrXAnLfGXftmfA1y3lVm3
-# YT8CFLRf7ij6KcFPM8fDfZC2ZN1wMXbcf1uez3xyn1zc/sl2z5Z9WwG5uGDknpCT
-# MdiTM1KchMDnb2aeyjZPVy7XOr8emeQrYTf49U2sLoANdkhVlrofQtmS8yk76/O0
-# NQxvlIGPIlYSKuN+V0hCy0gqpEfM+Z1n3lGxVYxp3PixugQueM96Ds+lMBOSVGMr
-# GZn1Z/TTxkINLFcv6+BfpLjVx3YgjrS5oIS4TVy4qj+BEnZNsfdTsm3VOjRi5NiO
-# 6sDcisJZ5xZUpVfg1TylSiihggKiMIICngYJKoZIhvcNAQkGMYICjzCCAosCAQEw
+# gAAwGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwLwYJKoZIhvcNAQkEMSIEIF0s
+# I3mU7rhgwhvTcZFDfCWhB4vxhreOV+wmmbxZPTacMA0GCSqGSIb3DQEBAQUABIIB
+# AEB3m8DcSofgM+Ox08oZ/sxcxQfY0EVB9k6qsH6jjNgyb5NxkjBsMDTF8gDxBAp3
+# XddNTtVtEP5ZuMOggPYxwjbYXXz8J3R+CZlV6lxg4aOq64sZrM3Albzw7al+Uupo
+# 2J4qoJa66ft8+2CnoHzbSe4u6akvjC4GO1kHAVSWaGl/8VyVnTYDnS+g0L8etDb/
+# D4jRCvzzvsA7I71+i5YiYQlLZEUt5cc8Xg9OJlI0fLRXqiqMJdIZ8eJlmQgpkAse
+# vI2UG1TLYe/DkV2hBI6zAx+nBF3RT2KJ+05Jwc53nlRLiiiKmINACICaRFRWpzGh
+# /dZ69qoLvO+es/d+Djng0HChggKiMIICngYJKoZIhvcNAQkGMYICjzCCAosCAQEw
 # aDBSMQswCQYDVQQGEwJCRTEZMBcGA1UEChMQR2xvYmFsU2lnbiBudi1zYTEoMCYG
 # A1UEAxMfR2xvYmFsU2lnbiBUaW1lc3RhbXBpbmcgQ0EgLSBHMgISESHWmadklz7x
 # +EJ+6RnMU0EUMAkGBSsOAwIaBQCggf0wGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEH
-# ATAcBgkqhkiG9w0BCQUxDxcNMTcwNjE0MjIwMDQzWjAjBgkqhkiG9w0BCQQxFgQU
-# pmpNTwD/jDYQHTs8/BKQrkMhhZkwgZ0GCyqGSIb3DQEJEAIMMYGNMIGKMIGHMIGE
+# ATAcBgkqhkiG9w0BCQUxDxcNMTgwMzA3MjAxMzUzWjAjBgkqhkiG9w0BCQQxFgQU
+# peqTXoqiPoWohsxnGdh0nslx6o8wgZ0GCyqGSIb3DQEJEAIMMYGNMIGKMIGHMIGE
 # BBRjuC+rYfWDkJaVBQsAJJxQKTPseTBsMFakVDBSMQswCQYDVQQGEwJCRTEZMBcG
 # A1UEChMQR2xvYmFsU2lnbiBudi1zYTEoMCYGA1UEAxMfR2xvYmFsU2lnbiBUaW1l
 # c3RhbXBpbmcgQ0EgLSBHMgISESHWmadklz7x+EJ+6RnMU0EUMA0GCSqGSIb3DQEB
-# AQUABIIBADdJmTXv7abajBKZ0Q98z2ibo9aNH4ynhsYz1Obp/+Gs5WVwvltRH5Yg
-# ynQu3PRw/OXRkc0CbhiVgyzxgupjeUTSyHUhXRHsIedBaYOWo8lEMYm8I5fkQ5Rh
-# 2yRw5QV5uaWDaHZimqoYwASgGnfPnEuyeQLLfvnB3Z50pdyw1yyxvzblXx2qZt7T
-# Pt1E3FYoyOvburSxRmuO8zAtdZ54KwTQUm6e5AUKQZlPP7P6zf3aQ71t1GgALK/V
-# Tf742lxBBi0fumFy21qvHF1RGrfOC3i6eQ7JUaWwtHNl9hSbMSoYsMRXS/BcB9Ai
-# p0wfcvGY8hzJl+nupxqw1us0PrOCBDE=
+# AQUABIIBACeBUqUFH8G5Wv4hqQVhjzKTfwwE4GK+jUD9Ws6J7ui9BjHoz+0Vmwu9
+# KTc4+IXuigrudOScLFEmRBliHFuRU1s/AMEw3VE/A62nCJErWAlXTnAGfpQcAJLO
+# +2VTrT0Tbh1N8aGoAsxiVcTD9Kxy+GHHT0oV1eCTeeEQnZmjxs74/K5GZd/BxjM3
+# 25cO/1JFlrtF/jETMZztY94jHXH70xKRXdgYnO/GkNsMFhPlAVsDm1xb3poNS9mf
+# 7qrxapOUUmq45RXsFk0JwH1aAljAAftEuEcdUPBXaol1tcGRzFLdvy96J9II3+0z
+# Y2fd2nprU8hq5VQmQE4Ropfcv+mCVE0=
 # SIG # End signature block
